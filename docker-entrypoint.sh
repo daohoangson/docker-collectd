@@ -95,7 +95,7 @@ if [ "x$1" == "xcollectd" ]; then
 				echo "$COLLECTD_CONF"; \
 				echo ""; \
 				echo "<Plugin \"nginx\">"; \
-				echo "	URL \"http://$COLLECTD_WEB_HOST:$COLLECTD_WEB_PORT/$COLLECTD_NGINX_STATUS_PATH\""; \
+				echo "	URL \"http://$COLLECTD_WEB_HOST:$COLLECTD_WEB_PORT$COLLECTD_NGINX_STATUS_PATH\""; \
 				echo "</Plugin>"; \
 			)"
 		fi
@@ -105,7 +105,7 @@ if [ "x$1" == "xcollectd" ]; then
 				echo "$COLLECTD_CONF"; \
 				echo ""; \
 				echo "<Plugin curl_json>"; \
-				echo "	<URL \"http://$COLLECTD_WEB_HOST:$COLLECTD_WEB_PORT/$COLLECTD_PHP_FPM_STATUS_PATH?json\">"; \
+				echo "	<URL \"http://$COLLECTD_WEB_HOST:$COLLECTD_WEB_PORT$COLLECTD_PHP_FPM_STATUS_PATH?json\">"; \
 				echo "		Instance 'main'"; \
 				echo "		<Key \"accepted conn\">"; \
 				echo "			Type \"phpfpm_requests\""; \
