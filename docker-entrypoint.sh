@@ -37,13 +37,13 @@ if [ "x$1" == "xcollectd" ]; then
 			echo "$COLLECTD_CONF"; \
 			echo ""; \
 			echo "<Plugin \"network\">"; \
-			echo "	Server \"$COLLECTD_INFLUXDB_HOST\" \"COLLECTD_INFLUXDB_PORT\""; \
+			echo "	Server \"$COLLECTD_INFLUXDB_HOST\" \"$COLLECTD_INFLUXDB_PORT\""; \
 			echo "</Plugin>"; \
 		)"
 	fi
 
 	if [ ! -z "$COLLECTD_DOCKER_SOCKET_PATH" ]; then
-		if [ ! -f "$COLLECTD_DOCKER_SOCKET_PATH" ]; then
+		if [ ! -e "$COLLECTD_DOCKER_SOCKET_PATH" ]; then
 			echo "COLLECTD_DOCKER_SOCKET_PATH ($COLLECTD_DOCKER_SOCKET_PATH) file not found."
 			exit 1
 		fi
@@ -62,7 +62,7 @@ if [ "x$1" == "xcollectd" ]; then
 	fi
 
 	if [ ! -z "$COLLECTD_HAPROXY_SOCKET_PATH" ]; then
-		if [ ! -f "$COLLECTD_HAPROXY_SOCKET_PATH" ]; then
+		if [ ! -e "$COLLECTD_HAPROXY_SOCKET_PATH" ]; then
 			echo "COLLECTD_HAPROXY_SOCKET_PATH ($COLLECTD_HAPROXY_SOCKET_PATH) file not found."
 			exit 1
 		fi
