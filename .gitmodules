@@ -1,0 +1,6 @@
+[submodule "plugins/collectd-haproxy"]
+	path = plugins/collectd-haproxy
+	url = https://github.com/mleinart/collectd-haproxy.git
+[submodule "plugins/docker-collectd-plugin"]
+	path = plugins/docker-collectd-plugin
+	url = https://github.com/lebauce/docker-collectd-plugin.git
