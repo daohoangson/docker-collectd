@@ -2,8 +2,6 @@
 
 # Environment variables:
 # COLLECTD_INFLUXDB_HOST, COLLECTD_INFLUXDB_PORT=25826: influxdb configuration, hostname must be resolvable.
-# COLLECTD_MONITOR_LOAD: enable `Load` plugin (https://collectd.org/wiki/index.php/Plugin:Load)
-# COLLECTD_MONITOR_MEMORY: enable `Memory` plugin (https://collectd.org/wiki/index.php/Plugin:Memory)
 # COLLECTD_DOCKER_SOCKET_PATH: path to docker.sock, mount from docker host with `-v /var/run/docker.sock:/docker.sock:ro`.
 # COLLECTD_HAPROXY_SOCKET_PATH: path to haproxy.sock, getting stats does not require admin level.
 # COLLECTD_WEB_HOST, COLLECTD_WEB_PORT=80: web configuration, hostname must be resolvable.
@@ -40,24 +38,6 @@ if [ "x$1" == "xcollectd" ]; then
 			echo ""; \
 			echo "<Plugin \"network\">"; \
 			echo "	Server \"$COLLECTD_INFLUXDB_HOST\" \"$COLLECTD_INFLUXDB_PORT\""; \
-			echo "</Plugin>"; \
-		)"
-	fi
-
-	if [ ! -z "$COLLECTD_MONITOR_LOAD" ]; then
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
-			echo ""; \
-			echo "<Plugin \"load\">"; \
-			echo "</Plugin>"; \
-		)"
-	fi
-
-	if [ ! -z "$COLLECTD_MONITOR_MEMORY" ]; then
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
-			echo ""; \
-			echo "<Plugin \"memory\">"; \
 			echo "</Plugin>"; \
 		)"
 	fi
