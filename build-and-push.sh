@@ -1,9 +1,10 @@
 #!/bin/sh
 
 DOCKER_HUB_IMAGE="xfrocks/collectd"
-DOCKER_HUB_TAG="2017042501"
+DOCKER_HUB_TAG="2017052701"
 
-git submodule update --init --recursive \
-	&& docker build -t "$DOCKER_HUB_IMAGE" -t "$DOCKER_HUB_IMAGE:$DOCKER_HUB_TAG" . \
-	&& docker push "$DOCKER_HUB_IMAGE" \
-	&& docker push "$DOCKER_HUB_IMAGE:$DOCKER_HUB_TAG"
+git submodule update --init --recursive
+docker build -t "$DOCKER_HUB_IMAGE" -t "$DOCKER_HUB_IMAGE:$DOCKER_HUB_TAG" .
+
+docker push "$DOCKER_HUB_IMAGE"
+docker push "$DOCKER_HUB_IMAGE:$DOCKER_HUB_TAG"

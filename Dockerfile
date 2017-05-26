@@ -1,8 +1,9 @@
-FROM alpine:edge
+FROM alpine:3.5
 
 RUN apk add --no-cache --update \
 		collectd \
 		collectd-curl \
+		collectd-mysql \
 		collectd-network \
 		collectd-nginx \
 		collectd-python \

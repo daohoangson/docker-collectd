@@ -4,6 +4,10 @@
 # COLLECTD_INFLUXDB_HOST, COLLECTD_INFLUXDB_PORT=25826: influxdb configuration, hostname must be resolvable.
 # COLLECTD_DOCKER_SOCKET_PATH: path to docker.sock, mount from docker host with `-v /var/run/docker.sock:/docker.sock:ro`.
 # COLLECTD_HAPROXY_SOCKET_PATH: path to haproxy.sock, getting stats does not require admin level.
+# COLLECTD_MYSQL_USER, COLLECTD_MYSQL_PASSWORD: mysql configuration.
+#	COLLECTD_MYSQL_HOST, COLLECTD_MYSQL_PORT
+# 	COLLECTD_MYSQL_SOCKET
+#	COLLECTD_MYSQL_MASTER_STATS, COLLECTD_MYSQL_SLAVE_STATS, COLLECTD_MYSQL_INNODB_STATS
 # COLLECTD_WEB_HOST, COLLECTD_WEB_PORT=80: web configuration, hostname must be resolvable.
 #	COLLECTD_NGINX_STATUS_PATH: used with COLLECTD_WEB_HOST to get nginx stats (using `stub_status on;`).
 #	COLLECTD_PHP_FPM_STATUS_PATH: used with COLLECTD_WEB_HOST to get php-fpm stats (using `pm.status_path = /status`).
@@ -78,6 +82,68 @@ if [ "x$1" == "xcollectd" ]; then
 			echo "		ProxyMonitor \"port80\""; \
 			echo "		ProxyMonitor \"port443\""; \
 			echo "	</Module>"; \
+			echo "</Plugin>"; \
+		)"
+	fi
+
+	if [ ! -z "$COLLECTD_MYSQL_USER" ]; then
+		if [ -z "$COLLECTD_MYSQL_PASSWORD" ]; then
+			echo 'COLLECTD_MYSQL_PASSWORD is missing'
+			exit 1
+		fi
+
+		_mysqlInstance='localhost'
+		if [ ! -z "$COLLECTD_MYSQL_HOST" ]; then
+			_mysqlInstance="$COLLECTD_MYSQL_HOST"
+		fi
+
+		COLLECTD_CONF="$( \
+			echo "$COLLECTD_CONF"; \
+			echo ""; \
+			echo "<Plugin \"mysql\">"; \
+			echo "	<Database \"$_mysqlInstance\">"; \
+			echo "		User \"$COLLECTD_MYSQL_USER\""; \
+			echo "		Password \"$COLLECTD_MYSQL_PASSWORD\""; \
+		)"
+
+		if [ ! -z "$COLLECTD_MYSQL_HOST" ]; then
+			_mysqlPort=${COLLECTD_MYSQL_PORT:-3306}
+			COLLECTD_CONF="$( \
+				echo "$COLLECTD_CONF"; \
+				echo "		Host \"$COLLECTD_MYSQL_HOST\""; \
+				echo "		Port \"$_mysqlPort\""; \
+			)"
+		elif [ ! -z "$COLLECTD_MYSQL_SOCKET" ]; then
+			COLLECTD_CONF="$( \
+				echo "$COLLECTD_CONF"; \
+				echo "		Socket \"$COLLECTD_MYSQL_SOCKET\""; \
+			)"
+		fi
+
+		if [ ! -z "$COLLECTD_MYSQL_MASTER_STATS" ]; then
+			COLLECTD_CONF="$( \
+				echo "$COLLECTD_CONF"; \
+				echo "		MasterStats true"; \
+			)"
+		fi
+
+		if [ ! -z "$COLLECTD_MYSQL_SLAVE_STATS" ]; then
+			COLLECTD_CONF="$( \
+				echo "$COLLECTD_CONF"; \
+				echo "		SlaveStats true"; \
+			)"
+		fi
+
+		if [ ! -z "$COLLECTD_MYSQL_INNODB_STATS" ]; then
+			COLLECTD_CONF="$( \
+				echo "$COLLECTD_CONF"; \
+				echo "		InnodbStats true"; \
+			)"
+		fi
+
+		COLLECTD_CONF="$( \
+			echo "$COLLECTD_CONF"; \
+			echo "	</Database>"; \
 			echo "</Plugin>"; \
 		)"
 	fi
