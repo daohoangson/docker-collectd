@@ -4,6 +4,7 @@
 # COLLECTD_INFLUXDB_HOST, COLLECTD_INFLUXDB_PORT=25826: influxdb configuration, hostname must be resolvable.
 # COLLECTD_DOCKER_SOCKET_PATH: path to docker.sock, mount from docker host with `-v /var/run/docker.sock:/docker.sock:ro`.
 # COLLECTD_HAPROXY_SOCKET_PATH: path to haproxy.sock, getting stats does not require admin level.
+# COLLECTD_MEMCACHED_ADDRESS, COLLECTD_MEMCACHED_PORT, COLLECTD_MEMCACHED_SOCKET: memcached configuration.
 # COLLECTD_MYSQL_USER, COLLECTD_MYSQL_PASSWORD: mysql configuration.
 #	COLLECTD_MYSQL_HOST, COLLECTD_MYSQL_PORT
 # 	COLLECTD_MYSQL_SOCKET
@@ -82,6 +83,39 @@ if [ "x$1" == "xcollectd" ]; then
 			echo "		ProxyMonitor \"port80\""; \
 			echo "		ProxyMonitor \"port443\""; \
 			echo "	</Module>"; \
+			echo "</Plugin>"; \
+		)"
+	fi
+
+	if [ ! -z "$COLLECTD_MEMCACHED_ADDRESS" -o ! -z "$COLLECTD_MEMCACHED_SOCKET" ]; then
+		COLLECTD_CONF="$( \
+			echo "$COLLECTD_CONF"; \
+			echo ""; \
+			echo "<Plugin \"memcached\">"; \
+		)"
+
+		if [ ! -z "$COLLECTD_MEMCACHED_ADDRESS" ]; then
+			_memcachedIp="$( getent hosts $COLLECTD_MEMCACHED_ADDRESS | awk '{ print $1 }' )"
+			if [ "x$_memcachedIp" == "x" ]; then
+				echo "COLLECTD_MEMCACHED_ADDRESS ($COLLECTD_MEMCACHED_ADDRESS) host not found."
+				exit 1
+			fi
+			_memcachedPort=${COLLECTD_MEMCACHED_PORT:-11211}
+
+			COLLECTD_CONF="$( \
+				echo "$COLLECTD_CONF"; \
+				echo "	Address \"$COLLECTD_MEMCACHED_ADDRESS\""; \
+				echo "	Port \"$_memcachedPort\""; \
+			)"
+		elif [ ! -z "$COLLECTD_MEMCACHED_SOCKET" ]; then
+			COLLECTD_CONF="$( \
+				echo "$COLLECTD_CONF"; \
+				echo "	Socket \"$COLLECTD_MEMCACHED_SOCKET\""; \
+			)"
+		fi
+
+		COLLECTD_CONF="$( \
+			echo "$COLLECTD_CONF"; \
 			echo "</Plugin>"; \
 		)"
 	fi
