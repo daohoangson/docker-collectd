@@ -7,6 +7,7 @@ RUN apk add --no-cache --update \
 		collectd-network \
 		collectd-nginx \
 		collectd-python \
+		collectd-redis \
 		py2-pip \
 	&& (rm "/tmp/"* 2>/dev/null || true) \
 	&& (rm -rf /var/cache/apk/* 2>/dev/null || true)

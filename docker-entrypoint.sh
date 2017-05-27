@@ -9,6 +9,7 @@
 #	COLLECTD_MYSQL_HOST, COLLECTD_MYSQL_PORT
 # 	COLLECTD_MYSQL_SOCKET
 #	COLLECTD_MYSQL_MASTER_STATS, COLLECTD_MYSQL_SLAVE_STATS, COLLECTD_MYSQL_INNODB_STATS
+# COLLECTD_REDIS_HOST, COLLECTD_REDIS_PASSWORD, COLLECTD_REDIS_PORT: redis configuration.
 # COLLECTD_WEB_HOST, COLLECTD_WEB_PORT=80: web configuration, hostname must be resolvable.
 #	COLLECTD_NGINX_STATUS_PATH: used with COLLECTD_WEB_HOST to get nginx stats (using `stub_status on;`).
 #	COLLECTD_PHP_FPM_STATUS_PATH: used with COLLECTD_WEB_HOST to get php-fpm stats (using `pm.status_path = /status`).
@@ -178,6 +179,37 @@ if [ "x$1" == "xcollectd" ]; then
 		COLLECTD_CONF="$( \
 			echo "$COLLECTD_CONF"; \
 			echo "	</Database>"; \
+			echo "</Plugin>"; \
+		)"
+	fi
+
+	if [ ! -z "$COLLECTD_REDIS_HOST" ]; then
+		_redisIp="$( getent hosts $COLLECTD_REDIS_HOST | awk '{ print $1 }' )"
+		if [ "x$_redisIp" == "x" ]; then
+			echo "COLLECTD_REDIS_HOST ($COLLECTD_REDIS_HOST) host not found."
+			exit 1
+		fi
+		_redisPort=${COLLECTD_REDIS_PORT:-6379}
+
+		COLLECTD_CONF="$( \
+			echo "$COLLECTD_CONF"; \
+			echo ""; \
+			echo "<Plugin \"redis\">"; \
+			echo "	<Node \"$COLLECTD_REDIS_HOST\">"; \
+			echo "		Host \"$COLLECTD_REDIS_HOST\""; \
+			echo "		Port \"$_redisPort\""; \
+		)"
+
+		if [ ! -z "$COLLECTD_REDIS_PASSWORD" ]; then
+			COLLECTD_CONF="$( \
+				echo "$COLLECTD_CONF"; \
+				echo "		Password \"$COLLECTD_REDIS_PASSWORD\""; \
+			)"
+		fi
+
+		COLLECTD_CONF="$( \
+			echo "$COLLECTD_CONF"; \
+			echo "	</Node>"; \
 			echo "</Plugin>"; \
 		)"
 	fi
