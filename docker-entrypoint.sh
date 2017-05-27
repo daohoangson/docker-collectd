@@ -17,33 +17,31 @@
 set -e
 
 # if command starts with an option, prepend collectd
-if [ "${1:0:1}" = "-" ]; then
+if [ "${1:0:1}" = '-' ]; then
 	set -- collectd "$@"
 fi
 
 if [ "x$1" == "xcollectd" ]; then
-	GENERATED_DATE="$( date )"
-	HOSTNAME="$( head -n 1 "/etc/hostname" )"
-	COLLECTD_CONF="$( \
-		echo "# Generated at $GENERATED_DATE"; \
-		echo "Hostname \"$HOSTNAME\""; \
+	_collectdConf="$( \
+		echo "# Generated at `date`"; \
+		echo "Hostname \"`head -n 1 /etc/hostname`\""; \
 		echo "AutoLoadPlugin true"; \
 		echo "TypesDB \"/usr/share/collectd/types.db\""; \
 	)"
 
 	if [ ! -z "$COLLECTD_INFLUXDB_HOST" ]; then
-		IP="$( getent hosts $COLLECTD_INFLUXDB_HOST | awk '{ print $1 }' )"
-		if [ "x$IP" == "x" ]; then
+		_influxdbIp="$( getent hosts $COLLECTD_INFLUXDB_HOST | awk '{ print $1 }' )"
+		if [ -z "$_influxdbIp" ]; then
 			echo "COLLECTD_INFLUXDB_HOST ($COLLECTD_INFLUXDB_HOST) host not found."
 			exit 1
 		fi
-		COLLECTD_INFLUXDB_PORT=${COLLECTD_INFLUXDB_PORT:-"25826"}
+		_influxdbPort=${COLLECTD_INFLUXDB_PORT:-"25826"}
 
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo ""; \
 			echo "<Plugin \"network\">"; \
-			echo "	Server \"$COLLECTD_INFLUXDB_HOST\" \"$COLLECTD_INFLUXDB_PORT\""; \
+			echo "	Server \"$COLLECTD_INFLUXDB_HOST\" \"$_influxdbPort\""; \
 			echo "</Plugin>"; \
 		)"
 	fi
@@ -54,8 +52,8 @@ if [ "x$1" == "xcollectd" ]; then
 			exit 1
 		fi
 
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo ""; \
 			echo "<Plugin \"python\">"; \
 			echo "	ModulePath \"/plugins/docker-collectd-plugin\""; \
@@ -73,8 +71,8 @@ if [ "x$1" == "xcollectd" ]; then
 			exit 1
 		fi
 
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo ""; \
 			echo "<Plugin \"python\">"; \
 			echo "	ModulePath \"/plugins/collectd-haproxy\""; \
@@ -89,34 +87,34 @@ if [ "x$1" == "xcollectd" ]; then
 	fi
 
 	if [ ! -z "$COLLECTD_MEMCACHED_ADDRESS" -o ! -z "$COLLECTD_MEMCACHED_SOCKET" ]; then
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo ""; \
 			echo "<Plugin \"memcached\">"; \
 		)"
 
 		if [ ! -z "$COLLECTD_MEMCACHED_ADDRESS" ]; then
 			_memcachedIp="$( getent hosts $COLLECTD_MEMCACHED_ADDRESS | awk '{ print $1 }' )"
-			if [ "x$_memcachedIp" == "x" ]; then
+			if [ -z "$_memcachedIp" ]; then
 				echo "COLLECTD_MEMCACHED_ADDRESS ($COLLECTD_MEMCACHED_ADDRESS) host not found."
 				exit 1
 			fi
 			_memcachedPort=${COLLECTD_MEMCACHED_PORT:-11211}
 
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo "	Address \"$COLLECTD_MEMCACHED_ADDRESS\""; \
 				echo "	Port \"$_memcachedPort\""; \
 			)"
 		elif [ ! -z "$COLLECTD_MEMCACHED_SOCKET" ]; then
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo "	Socket \"$COLLECTD_MEMCACHED_SOCKET\""; \
 			)"
 		fi
 
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo "</Plugin>"; \
 		)"
 	fi
@@ -132,8 +130,8 @@ if [ "x$1" == "xcollectd" ]; then
 			_mysqlInstance="$COLLECTD_MYSQL_HOST"
 		fi
 
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo ""; \
 			echo "<Plugin \"mysql\">"; \
 			echo "	<Database \"$_mysqlInstance\">"; \
@@ -142,42 +140,48 @@ if [ "x$1" == "xcollectd" ]; then
 		)"
 
 		if [ ! -z "$COLLECTD_MYSQL_HOST" ]; then
+			_mysqlIp="$( getent hosts $COLLECTD_MYSQL_HOST | awk '{ print $1 }' )"
+			if [ -z "$_mysqlIp" ]; then
+				echo "COLLECTD_MYSQL_HOST ($COLLECTD_MYSQL_HOST) host not found."
+				exit 1
+			fi
 			_mysqlPort=${COLLECTD_MYSQL_PORT:-3306}
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo "		Host \"$COLLECTD_MYSQL_HOST\""; \
 				echo "		Port \"$_mysqlPort\""; \
 			)"
 		elif [ ! -z "$COLLECTD_MYSQL_SOCKET" ]; then
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo "		Socket \"$COLLECTD_MYSQL_SOCKET\""; \
 			)"
 		fi
 
 		if [ ! -z "$COLLECTD_MYSQL_MASTER_STATS" ]; then
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo "		MasterStats true"; \
 			)"
 		fi
 
 		if [ ! -z "$COLLECTD_MYSQL_SLAVE_STATS" ]; then
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo "		SlaveStats true"; \
 			)"
 		fi
 
 		if [ ! -z "$COLLECTD_MYSQL_INNODB_STATS" ]; then
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo "		InnodbStats true"; \
 			)"
 		fi
 
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo "	</Database>"; \
 			echo "</Plugin>"; \
 		)"
@@ -185,14 +189,14 @@ if [ "x$1" == "xcollectd" ]; then
 
 	if [ ! -z "$COLLECTD_REDIS_HOST" ]; then
 		_redisIp="$( getent hosts $COLLECTD_REDIS_HOST | awk '{ print $1 }' )"
-		if [ "x$_redisIp" == "x" ]; then
+		if [ -z "$_redisIp" ]; then
 			echo "COLLECTD_REDIS_HOST ($COLLECTD_REDIS_HOST) host not found."
 			exit 1
 		fi
 		_redisPort=${COLLECTD_REDIS_PORT:-6379}
 
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo ""; \
 			echo "<Plugin \"redis\">"; \
 			echo "	<Node \"$COLLECTD_REDIS_HOST\">"; \
@@ -201,43 +205,43 @@ if [ "x$1" == "xcollectd" ]; then
 		)"
 
 		if [ ! -z "$COLLECTD_REDIS_PASSWORD" ]; then
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo "		Password \"$COLLECTD_REDIS_PASSWORD\""; \
 			)"
 		fi
 
-		COLLECTD_CONF="$( \
-			echo "$COLLECTD_CONF"; \
+		_collectdConf="$( \
+			echo "$_collectdConf"; \
 			echo "	</Node>"; \
 			echo "</Plugin>"; \
 		)"
 	fi
 
 	if [ ! -z "$COLLECTD_WEB_HOST" ]; then
-		IP="$( getent hosts $COLLECTD_WEB_HOST | awk '{ print $1 }' )"
-		if [ "x$IP" == "x" ]; then
+		_webIp="$( getent hosts $COLLECTD_WEB_HOST | awk '{ print $1 }' )"
+		if [ -z "$_webIp" ]; then
 			echo "COLLECTD_WEB_HOST ($COLLECTD_WEB_HOST) host not found."
 			exit 1
 		fi
-		COLLECTD_WEB_PORT=${COLLECTD_WEB_PORT:-"80"}
+		_webPort=${COLLECTD_WEB_PORT:-"80"}
 
 		if [ ! -z "$COLLECTD_NGINX_STATUS_PATH" ]; then
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo ""; \
 				echo "<Plugin \"nginx\">"; \
-				echo "	URL \"http://$COLLECTD_WEB_HOST:$COLLECTD_WEB_PORT$COLLECTD_NGINX_STATUS_PATH\""; \
+				echo "	URL \"http://$COLLECTD_WEB_HOST:$_webPort$COLLECTD_NGINX_STATUS_PATH\""; \
 				echo "</Plugin>"; \
 			)"
 		fi
 
 		if [ ! -z "$COLLECTD_PHP_FPM_STATUS_PATH" ]; then
-			COLLECTD_CONF="$( \
-				echo "$COLLECTD_CONF"; \
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
 				echo ""; \
 				echo "<Plugin curl_json>"; \
-				echo "	<URL \"http://$COLLECTD_WEB_HOST:$COLLECTD_WEB_PORT$COLLECTD_PHP_FPM_STATUS_PATH?json\">"; \
+				echo "	<URL \"http://$COLLECTD_WEB_HOST:$_webPort$COLLECTD_PHP_FPM_STATUS_PATH?json\">"; \
 				echo "		Instance 'main'"; \
 				echo "		<Key \"accepted conn\">"; \
 				echo "			Type \"phpfpm_requests\""; \
@@ -265,8 +269,7 @@ if [ "x$1" == "xcollectd" ]; then
 		fi
 	fi
 
-	echo "$COLLECTD_CONF" | tee "/etc/collectd/collectd.conf" >&0
-	echo "$COLLECTD_CONF"
+	echo "$_collectdConf" | tee "/etc/collectd/collectd.conf"
 fi
 
 echo "Executing $@..."

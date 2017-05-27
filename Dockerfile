@@ -9,13 +9,12 @@ RUN apk add --no-cache --update \
 		collectd-python \
 		collectd-redis \
 		py2-pip \
-	&& (rm "/tmp/"* 2>/dev/null || true) \
-	&& (rm -rf /var/cache/apk/* 2>/dev/null || true)
-
-RUN pip install --no-cache-dir --upgrade pip \
+	&& pip install --no-cache-dir --upgrade pip \
 	&& pip install --no-cache-dir \
 		py-dateutil \
-		docker-py>=1.0.0
+		docker-py>=1.0.0 \
+	&& (rm "/tmp/"* 2>/dev/null || true) \
+	&& (rm -rf /var/cache/apk/* 2>/dev/null || true)
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY plugins/collectd-haproxy/haproxy.py /plugins/collectd-haproxy/haproxy.py
