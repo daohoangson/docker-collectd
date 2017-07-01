@@ -1,7 +1,7 @@
-FROM alpine:3.5
+FROM alpine:3.6
 
 RUN apk add --no-cache --update \
-		collectd \
+		collectd=5.6.2-r0 \
 		collectd-curl \
 		collectd-mysql \
 		collectd-network \
