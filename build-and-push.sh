@@ -23,4 +23,4 @@ do
   esac
 done
 docker push "$DOCKER_HUB_IMAGE"
-docker push "$DOCKER_HUB_IMAGE:$DOCKER_HUB_TAG"
+docker push "$DOCKER_HUB_IMAGE_WITH_TAG"
