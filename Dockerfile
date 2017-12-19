@@ -1,7 +1,9 @@
-FROM alpine:3.6
+FROM alpine:3.7
 
-RUN apk add --no-cache --update \
-		collectd=5.6.2-r0 \
+ARG COLLECTD_VERSION
+
+RUN apk add --no-cache \
+		collectd=${COLLECTD_VERSION} \
 		collectd-curl \
 		collectd-mysql \
 		collectd-network \
