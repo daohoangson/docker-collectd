@@ -24,7 +24,7 @@ fi
 if [ "x$1" == "xcollectd" ]; then
 	_collectdConf="$( \
 		echo "# Generated at `date`"; \
-		echo "Hostname \"`head -n 1 /etc/hostname`\""; \
+		echo "Hostname \"`hostname -s`\""; \
 		echo "AutoLoadPlugin true"; \
 		echo "TypesDB \"/usr/share/collectd/types.db\""; \
 	)"
