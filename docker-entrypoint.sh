@@ -176,9 +176,9 @@ if [ "x$1" == "xcollectd" ]; then
 					echo; \
 					echo "<Plugin \"mysql\">"; \
 					echo "	<Database \"$COLLECTD_MYSQL_HOST\">"; \
-					echo "$_mysqlConf"; \
 					echo "		Host \"$COLLECTD_MYSQL_HOST\""; \
 					echo "		Port \"$_mysqlPort\""; \
+					echo "$_mysqlConf"; \
 					echo "	</Database>"; \
 					echo "</Plugin>"; \
 				)"
@@ -194,8 +194,6 @@ if [ "x$1" == "xcollectd" ]; then
 					echo "	<Database \"localhost\">"; \
 					echo "		Socket \"$COLLECTD_MYSQL_SOCKET\""; \
 					echo "$_mysqlConf"; \
-					echo "		Host \"$COLLECTD_MYSQL_HOST\""; \
-					echo "		Port \"$_mysqlPort\""; \
 					echo "	</Database>"; \
 					echo "</Plugin>"; \
 				)"

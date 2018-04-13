@@ -22,5 +22,5 @@ do
       exit 0;;
   esac
 done
-docker push "$DOCKER_HUB_IMAGE"
+docker push "$DOCKER_HUB_IMAGE:latest"
 docker push "$DOCKER_HUB_IMAGE_WITH_TAG"
