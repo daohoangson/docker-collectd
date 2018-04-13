@@ -3,6 +3,7 @@
 # Environment variables:
 # COLLECTD_INFLUXDB_HOST, COLLECTD_INFLUXDB_PORT=25826: influxdb configuration, hostname must be resolvable.
 # COLLECTD_DOCKER_SOCKET_PATH: path to docker.sock, mount from docker host with `-v /var/run/docker.sock:/docker.sock:ro`.
+# COLLECTD_ELASTICSEARCH_HOST, COLLECTD_ELASTICSEARCH_PORT: elasticsearch configuration.
 # COLLECTD_HAPROXY_SOCKET_PATH: path to haproxy.sock, getting stats does not require admin level.
 # COLLECTD_MEMCACHED_HOST, COLLECTD_MEMCACHED_PORT, COLLECTD_MEMCACHED_SOCKET: memcached configuration.
 # COLLECTD_MYSQL_USER, COLLECTD_MYSQL_PASSWORD: mysql configuration.
@@ -57,6 +58,31 @@ if [ "x$1" == "xcollectd" ]; then
 				echo "	Import \"dockerplugin\""; \
 				echo "	<Module dockerplugin>"; \
 				echo "		BaseURL \"unix:/$COLLECTD_DOCKER_SOCKET_PATH\""; \
+				echo "	</Module>"; \
+				echo "</Plugin>"; \
+			)"
+		fi
+	fi
+
+	if [ ! -z "$COLLECTD_ELASTICSEARCH_HOST" ]; then
+		_elasticsearchIp="$( getent hosts $COLLECTD_ELASTICSEARCH_HOST | awk '{ print $1 }' )"
+		_elasticsearchPort=${COLLECTD_ELASTICSEARCH_PORT:-9200}
+		if [ -z "$_elasticsearchIp" ]; then
+			echo "COLLECTD_ELASTICSEARCH_HOST ($COLLECTD_ELASTICSEARCH_HOST) host not found." >&2
+		else
+			_collectdConf="$( \
+				echo "$_collectdConf"; \
+				echo ""; \
+				echo "<Plugin \"python\">"; \
+				echo "	ModulePath \"/plugins/collectd-elasticsearch\""; \
+				echo "	Import \"elasticsearch_collectd\""; \
+				echo "	<Module elasticsearch_collectd>"; \
+				echo "		Host \"$_elasticsearchIp\""; \
+				echo "		Port \"$_elasticsearchPort\""; \
+				echo "		EnableClusterHealth true"; \
+				echo "		EnableIndexStats true"; \
+				echo "		Indexes [\"_all\"]"; \
+				echo "		IndexStatsMasterOnly true"; \
 				echo "	</Module>"; \
 				echo "</Plugin>"; \
 			)"

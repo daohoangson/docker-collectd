@@ -4,3 +4,6 @@
 [submodule "plugins/docker-collectd-plugin"]
 	path = plugins/docker-collectd-plugin
 	url = https://github.com/lebauce/docker-collectd-plugin.git
+[submodule "plugins/collectd-elasticsearch"]
+	path = plugins/collectd-elasticsearch
+	url = https://github.com/signalfx/collectd-elasticsearch.git

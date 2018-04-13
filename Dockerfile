@@ -19,6 +19,7 @@ RUN apk add --no-cache \
 	&& (rm -rf /var/cache/apk/* 2>/dev/null || true)
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY plugins/collectd-elasticsearch/elasticsearch_collectd.py /plugins/collectd-elasticsearch/elasticsearch_collectd.py
 COPY plugins/collectd-haproxy/haproxy.py /plugins/collectd-haproxy/haproxy.py
 COPY plugins/docker-collectd-plugin/dockerplugin.py /plugins/docker-collectd-plugin/dockerplugin.py
 COPY types.db /usr/share/collectd/types.db
