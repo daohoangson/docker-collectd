@@ -3,7 +3,7 @@
 set -e
 
 # https://pkgs.alpinelinux.org/packages?name=collectd&branch=v3.8
-LATEST_VERSION='5.8.0-r0'
+LATEST_VERSION='5.8.0-r1'
 DOCKER_HUB_IMAGE='xfrocks/collectd'
 DOCKER_HUB_IMAGE_WITH_TAG="${DOCKER_HUB_IMAGE}:5.8.0"
 
