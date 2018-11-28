@@ -2,10 +2,10 @@
 
 set -e
 
-# https://pkgs.alpinelinux.org/packages?name=collectd&branch=v3.7
-LATEST_VERSION='5.7.2-r0'
+# https://pkgs.alpinelinux.org/packages?name=collectd&branch=v3.8
+LATEST_VERSION='5.8.0-r0'
 DOCKER_HUB_IMAGE='xfrocks/collectd'
-DOCKER_HUB_IMAGE_WITH_TAG="${DOCKER_HUB_IMAGE}:5.7.2c"
+DOCKER_HUB_IMAGE_WITH_TAG="${DOCKER_HUB_IMAGE}:5.8.0"
 
 git submodule update --init --recursive
 docker build --build-arg COLLECTD_VERSION="${LATEST_VERSION}" \
